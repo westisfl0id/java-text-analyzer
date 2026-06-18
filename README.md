@@ -1,44 +1,129 @@
-# Java Text Analyzer
+# Text Analyzer
 
-Консольное приложение на **Java 17** и **Spring Boot**, которое анализирует текстовые файлы в указанной папке и выводит самые часто встречающиеся слова.
+Console application on Java 17 and Spring Boot 3 for analyzing `.txt` files in a directory.
 
-## Описание
+The application counts words, ignores punctuation, word case, and optional stop words, then outputs the most frequent words.
 
-Приложение принимает путь к папке с `.txt` файлами, минимальную длину слова и количество самых популярных слов для вывода.
+## Requirements
 
-При анализе приложение:
+- Java 17+
+- Maven 3.8+
 
-* читает все `.txt` файлы из указанной папки;
-* извлекает слова с помощью регулярных выражений;
-* игнорирует регистр слов;
-* игнорирует знаки препинания;
-* игнорирует стоп-слова, если указан файл со стоп-словами;
-* считает количество вхождений каждого слова;
-* выводит результат в консоль или сохраняет его в JSON-файл.
+## Build
 
-## Технологии
+```bash
+mvn clean package
+```
 
-* Java 17
-* Spring Boot
-* Maven
-* Jackson
-* SLF4J / Logback
-
-## Структура проекта
+After building, the executable JAR will be here:
 
 ```text
-src/main/java/com/example/demo
+target/text-analyzer-1.0.0.jar
+```
+
+## Parameters
+
+Required:
+
+- `--dir` — path to a directory with `.txt` files
+- `--min-length` — minimum word length
+- `--top` — number of most frequent words to output
+
+Optional:
+
+- `--output` — path to JSON output file
+- `--stopwords` — path to a file with stop words
+- `--help` — show help
+
+## Usage examples
+
+Output to console:
+
+```bash
+java -jar target/text-analyzer-1.0.0.jar --dir ./texts --min-length 5 --top 10
+```
+
+Output to JSON:
+
+```bash
+java -jar target/text-analyzer-1.0.0.jar --dir ./texts --min-length 5 --top 10 --stopwords ./stop.txt --output ./results.json
+```
+
+Help:
+
+```bash
+java -jar target/text-analyzer-1.0.0.jar --help
+```
+
+## Stop words file example
+
+```text
+the
+and
+or
+in
+on
+```
+
+## Console output example
+
+```text
+1. development — 112
+2. process — 97
+3. engineering — 83
+```
+
+## JSON output example
+
+```json
+{
+  "analysisInfo": {
+    "directory": "./texts",
+    "minWordLength": 5,
+    "topCount": 10
+  },
+  "words": [
+    {
+      "word": "development",
+      "count": 112
+    },
+    {
+      "word": "process",
+      "count": 97
+    },
+    {
+      "word": "engineering",
+      "count": 83
+    }
+  ],
+  "errors": [
+    {
+      "file": "broken.txt",
+      "message": "Access denied"
+    }
+  ]
+}
+```
+
+## Project structure
+
+```text
+src/main/java/com/example/textanalyzer
+├── TextAnalyzerApplication.java
 ├── cli
-│   ├── AnalyzerCommandLineRunner.java
+│   ├── ArgsParser.java
 │   ├── CommandLineOptions.java
-│   └── CommandLineOptionsParser.java
+│   ├── HelpPrinter.java
+│   └── TextAnalyzerRunner.java
 ├── exception
-│   └── InvalidArgumentsException.java
+│   └── BadArgumentsException.java
 ├── io
-│   ├── DefaultStopWordsReader.java
-│   ├── DefaultTextFileReader.java
+│   ├── ConsoleResultWriter.java
+│   ├── FileStopWordsLoader.java
 │   ├── JsonResultWriter.java
-│   ├── StopWordsReader.java
+│   ├── LocalTextFileReader.java
+│   ├── ResultWriter.java
+│   ├── StopWordsLoader.java
 │   └── TextFileReader.java
 ├── model
 │   ├── AnalysisInfo.java
@@ -48,148 +133,17 @@ src/main/java/com/example/demo
 ├── service
 │   ├── DefaultTextAnalysisService.java
 │   └── TextAnalysisService.java
-├── word
-│   ├── RegexWordExtractor.java
-│   └── WordExtractor.java
-└── DemoApplication.java
+└── word
+    ├── RegexWordExtractor.java
+    └── WordExtractor.java
 ```
 
-## Параметры запуска
+## Notes
 
-| Параметр       | Описание                                    | Обязательный |
-| -------------- | ------------------------------------------- | ------------ |
-| `--dir`        | Путь к папке с `.txt` файлами               | Да           |
-| `--min-length` | Минимальная длина слова                     | Да           |
-| `--top`        | Количество самых частых слов                | Да           |
-| `--output`     | Путь к JSON-файлу для сохранения результата | Нет          |
-| `--stopwords`  | Путь к файлу со стоп-словами                | Нет          |
-| `--help`       | Вывод справки                               | Нет          |
-
-## Пример запуска из IntelliJ IDEA
-
-В настройках запуска нужно указать **Program arguments**:
-
-```bash
---dir ./texts --min-length 5 --top 10
-```
-
-Папка `texts` должна находиться в корне проекта.
-
-Пример файла:
-
-```text
-texts/test.txt
-```
-
-Содержимое файла:
-
-```text
-Development process is important.
-Development and engineering process.
-Java development process.
-```
-
-## Пример вывода в консоль
-
-```text
-1. development — 3
-2. process — 3
-3. engineering — 1
-4. important — 1
-```
-
-## Запуск через Maven
-
-Сначала нужно собрать проект:
-
-```bash
-./mvnw clean package
-```
-
-Или, если Maven установлен глобально:
-
-```bash
-mvn clean package
-```
-
-После сборки приложение можно запустить через jar-файл:
-
-```bash
-java -jar target/demo-0.0.1-SNAPSHOT.jar --dir ./texts --min-length 5 --top 10
-```
-
-Если название jar-файла отличается, его можно посмотреть в папке `target`.
-
-## Запуск с JSON-выводом
-
-```bash
-java -jar target/demo-0.0.1-SNAPSHOT.jar --dir ./texts --min-length 5 --top 10 --output ./results.json
-```
-
-Пример JSON-результата:
-
-```json
-{
-  "analysisInfo" : {
-    "directory" : "./texts",
-    "minWordLength" : 5,
-    "topCount" : 10
-  },
-  "words" : [ {
-    "word" : "development",
-    "count" : 3
-  }, {
-    "word" : "process",
-    "count" : 3
-  }, {
-    "word" : "engineering",
-    "count" : 1
-  }, {
-    "word" : "important",
-    "count" : 1
-  } ],
-  "errors" : [ ]
-}
-```
-
-## Запуск со стоп-словами
-
-Создать файл:
-
-```text
-stop.txt
-```
-
-Пример содержимого:
-
-```text
-development
-process
-```
-
-Запуск:
-
-```bash
-java -jar target/demo-0.0.1-SNAPSHOT.jar --dir ./texts --min-length 5 --top 10 --stopwords ./stop.txt
-```
-
-В этом случае слова `development` и `process` не будут учитываться при подсчёте.
-
-## Справка
-
-```bash
-java -jar target/demo-0.0.1-SNAPSHOT.jar --help
-```
-
-## Обработка ошибок
-
-Приложение обрабатывает следующие ситуации:
-
-* не указаны обязательные параметры;
-* указан неверный путь к папке;
-* путь не является папкой;
-* в папке нет `.txt` файлов;
-* файл пустой;
-* файл недоступен для чтения;
-* неверно указаны параметры запуска.
-
+- Files are searched recursively in the selected directory.
+- Only files ending with `.txt` are analyzed.
+- Words are extracted by regular expression.
+- Word case is ignored.
+- Punctuation is ignored.
+- The result is sorted by count descending, then alphabetically.
+- If one file cannot be read, the application continues analyzing other files and adds the file error to the result.
