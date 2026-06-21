@@ -38,3 +38,10 @@ build/
 *.log
 results.json
 .DS_Store
+
+# Local test input files
+texts/
+
+# Local environment files
+.env
+src/main/resources/application-local.properties

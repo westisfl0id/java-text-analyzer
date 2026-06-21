@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.Set;
 
 @Component
+@ConditionalOnProperty(name = "text-analyzer.cli.enabled", havingValue = "true")
 public class TextAnalyzerRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(TextAnalyzerRunner.class);
