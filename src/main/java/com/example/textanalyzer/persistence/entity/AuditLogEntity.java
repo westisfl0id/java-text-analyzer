@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.Instant;
 
+/**
+ * Database entity for a technical audit event.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

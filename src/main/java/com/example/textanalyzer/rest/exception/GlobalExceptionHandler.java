@@ -9,9 +9,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.Map;
 
+/**
+ * Global exception handler for REST controllers.
+ * <p>
+ * Converts application exceptions into HTTP responses.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

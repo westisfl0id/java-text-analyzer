@@ -1,371 +1,497 @@
 # Text Analyzer
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.5-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Maven](https://img.shields.io/badge/Maven-3-red)
 
-REST-сервис на Java 17 и Spring Boot 3 для анализа `.txt` файлов в указанной директории.
+REST-сервис на Java 17 и Spring Boot 3 для анализа текстовых файлов.
 
-Приложение считает частоту слов, игнорирует регистр, знаки препинания и стоп-слова.
-Результаты анализа сохраняются в PostgreSQL и доступны через REST API.
+Приложение анализирует все `.txt` файлы в указанной директории, подсчитывает частоту слов, игнорирует регистр, знаки препинания и стоп-слова, сохраняет результаты анализа в PostgreSQL и предоставляет доступ к ним через REST API.
 
-## Возможности
+---
 
-* запуск анализа через REST API;
-* поддержка однопоточного и многопоточного режима анализа;
-* обработка всех `.txt` файлов в указанной директории;
-* подсчёт самых частых слов;
-* фильтрация слов по минимальной длине;
-* поддержка стоп-слов;
-* сохранение результатов анализа в PostgreSQL;
-* хранение ошибок обработки файлов;
-* статусы анализа: `PENDING`, `RUNNING`, `COMPLETED`, `FAILED`;
-* получение результата конкретного анализа по ID;
-* получение списка всех прошлых анализов;
-* Basic Auth через Spring Security;
-* аудит запусков анализа: пользователь, время и параметры запуска.
+# Возможности
 
-## Технологии
+- анализ всех `.txt` файлов в директории;
+- однопоточный и многопоточный режим работы;
+- подсчет наиболее часто встречающихся слов;
+- фильтрация слов по минимальной длине;
+- использование стоп-слов;
+- сохранение результатов анализа в PostgreSQL;
+- хранение ошибок обработки отдельных файлов;
+- отслеживание статуса выполнения анализа;
+- получение результата анализа по идентификатору;
+- получение списка всех анализов;
+- Basic Authentication через Spring Security;
+- аудит запусков анализа.
 
-* Java 17
-* Spring Boot 3
-* Spring Web
-* Spring Data JPA
-* Spring Security
-* PostgreSQL
-* Maven
-* Jackson
-* Lombok
+---
 
-## Структура проекта
+# Используемые технологии
 
-```text id="kpqe3t"
-src/main/java/com/example/textanalyzer
-├── TextAnalyzerApplication.java
-├── cli
-│   ├── AnalysisMode.java
-│   ├── ArgsParser.java
-│   ├── CommandLineOptions.java
-│   ├── HelpPrinter.java
-│   └── TextAnalyzerRunner.java
-├── config
-│   └── SecurityConfig.java
-├── exception
-│   └── BadArgumentsException.java
-├── execution
-│   ├── FileAnalysisExecutor.java
-│   ├── PooledFileAnalysisExecutor.java
-│   ├── SingleFileAnalyzer.java
-│   └── SingleThreadFileAnalysisExecutor.java
-├── io
-│   ├── ConsoleResultWriter.java
-│   ├── FileStopWordsLoader.java
-│   ├── JsonResultWriter.java
-│   ├── LocalTextFileReader.java
-│   ├── ResultWriter.java
-│   ├── StopWordsLoader.java
-│   └── TextFileReader.java
-├── model
-│   ├── AnalysisInfo.java
-│   ├── AnalysisResult.java
-│   ├── FileAnalysisResult.java
-│   ├── FileError.java
-│   └── WordStat.java
-├── persistence
-│   ├── entity
-│   │   ├── AnalysisJobEntity.java
-│   │   ├── AnalysisStatus.java
-│   │   ├── AuditLogEntity.java
-│   │   ├── FileErrorEmbeddable.java
-│   │   └── WordCountEmbeddable.java
-│   └── repository
-│       ├── AnalysisJobRepository.java
-│       └── AuditLogRepository.java
-├── rest
-│   ├── controller
-│   │   └── AnalysisController.java
-│   ├── dto
-│   │   ├── AnalysisInfoResponse.java
-│   │   ├── AnalysisResultResponse.java
-│   │   ├── AnalysisSummaryResponse.java
-│   │   ├── AnalyzeRequest.java
-│   │   ├── AnalyzeResponse.java
-│   │   ├── FileErrorResponse.java
-│   │   └── WordResponse.java
-│   ├── exception
-│   │   └── GlobalExceptionHandler.java
-│   └── service
-│       └── AnalysisService.java
-├── service
-│   ├── DefaultTextAnalysisService.java
-│   └── TextAnalysisService.java
-└── word
-    ├── RegexWordExtractor.java
-    └── WordExtractor.java
+- Java 17
+- Spring Boot 3
+- Spring Web
+- Spring Data JPA
+- Spring Security
+- PostgreSQL
+- Flyway
+- Maven
+- Jackson
+- Lombok
+
+---
+
+# Структура проекта
+
+```text
+src
+├── main
+│   ├── java
+│   │   └── com/example/textanalyzer
+│   │       ├── cli
+│   │       ├── config
+│   │       ├── execution
+│   │       ├── io
+│   │       ├── model
+│   │       ├── persistence
+│   │       ├── rest
+│   │       ├── service
+│   │       ├── word
+│   │       └── TextAnalyzerApplication.java
+│   └── resources
+│       ├── application.properties
+│       └── db
+│           └── migration
 ```
 
-## Требования
+Полная структура проекта включает:
 
-* Java 17+
-* Maven 3.8+
-* PostgreSQL 14+
+- REST API;
+- сервисный слой;
+- слой анализа текста;
+- слой доступа к данным;
+- конфигурацию безопасности;
+- CLI-модуль;
+- миграции Flyway.
 
-## Настройка PostgreSQL
+---
 
-Пример запуска PostgreSQL через Docker:
+# Требования
 
-```bash id="enf0h9"
-docker run --name text-analyzer-postgres \
-  -e POSTGRES_DB=text_analyzer \
-  -e POSTGRES_USER=text_user \
-  -e POSTGRES_PASSWORD=text_password \
-  -p 5432:5432 \
-  -d postgres:16
+- Java 17+
+- Maven 3.8+
+- Docker
+- Docker Compose
+
+---
+
+
+# Запуск PostgreSQL
+
+Перед первым запуском создайте файл `.env` на основе шаблона:
+
+```bash
+cp .env.example .env
 ```
 
-Если контейнер уже создан:
+После этого запустите PostgreSQL:
 
-```bash id="mv2i8l"
-docker start text-analyzer-postgres
+```bash
+docker compose up -d
 ```
 
-## Конфигурация
+Проверить, что контейнер успешно запущен, можно командой:
+
+```bash
+docker ps
+```
+
+---
+
+# Конфигурация
 
 Основной конфигурационный файл:
 
-```text id="cl0uzp"
+```text
 src/main/resources/application.properties
 ```
 
-Приложение использует переменные окружения для подключения к базе данных:
+Для подключения используются переменные окружения:
 
-```properties id="v2g08y"
-spring.datasource.url=${DB_URL}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
+```properties
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/text_analyzer}
+spring.datasource.username=${DB_USERNAME:text_user}
+spring.datasource.password=${DB_PASSWORD:text_password}
 ```
 
-Пример локального запуска с переменными окружения:
+Пример файла `.env`:
 
-```bash id="k5fcys"
-DB_URL=jdbc:postgresql://localhost:5432/text_analyzer \
-DB_USERNAME=text_user \
-DB_PASSWORD=text_password \
+```env
+DB_URL=jdbc:postgresql://localhost:5432/text_analyzer
+DB_USERNAME=text_user
+DB_PASSWORD=text_password
+
+TEXT_ANALYZER_SECURITY_USER_USERNAME=user
+TEXT_ANALYZER_SECURITY_USER_PASSWORD=password
+
+TEXT_ANALYZER_SECURITY_ADMIN_USERNAME=admin
+TEXT_ANALYZER_SECURITY_ADMIN_PASSWORD=admin
+```
+
+Все параметры подключения автоматически считываются Spring Boot при запуске приложения.
+
+---
+
+# Миграции базы данных
+
+Для управления структурой базы данных используется Flyway.
+
+Все SQL-миграции располагаются в каталоге:
+
+```text
+src/main/resources/db/migration
+```
+
+При запуске приложения Flyway автоматически применяет отсутствующие миграции.
+
+Использование Flyway позволяет:
+
+- хранить структуру базы данных в системе контроля версий;
+- автоматически создавать таблицы;
+- автоматически создавать индексы;
+- отказаться от использования Hibernate DDL;
+- безопасно изменять структуру базы данных.
+
+---
+
+# Полный запуск проекта
+
+- Создать файл .env.
+- cp .env.example .env
+- Запустить PostgreSQL.
+- docker compose up -d
+ - Собрать проект.
+mvn clean package
+Запустить приложение.
 java -jar target/text-analyzer-1.0.0.jar
-```
+После запуска открыть:
+http://localhost:8080
 
-## Сборка
 
-```bash id="sudnej"
+# Сборка проекта
+
+```bash
 mvn clean package
 ```
 
-После сборки JAR-файл находится здесь:
+После успешной сборки будет создан файл:
 
-```text id="m7qd2d"
+```text
 target/text-analyzer-1.0.0.jar
 ```
 
-## Запуск
+---
 
-```bash id="i8mpf2"
-DB_URL=jdbc:postgresql://localhost:5432/text_analyzer \
-DB_USERNAME=text_user \
-DB_PASSWORD=text_password \
+# Полный запуск проекта
+
+1. Создать файл `.env`.
+
+```bash
+cp .env.example .env
+```
+
+2. Запустить PostgreSQL.
+
+```bash
+docker compose up -d
+```
+
+3. Собрать проект.
+
+```bash
+mvn clean package
+```
+
+4. Запустить приложение.
+
+```bash
 java -jar target/text-analyzer-1.0.0.jar
 ```
 
-После запуска сервис доступен по адресу:
+5. После запуска открыть:
 
-```text id="jnkpku"
+```text
 http://localhost:8080
 ```
 
-## Авторизация
+---
 
-API защищено через Spring Security Basic Auth.
+# Авторизация
+
+API защищено Spring Security Basic Authentication.
 
 Тестовые пользователи:
 
-```text id="t2ds3k"
-user / password
-admin / admin
+| Логин | Пароль |
+|-------|--------|
+| user | user   |
+| admin | admin  |
+
+---
+
+# REST API
+
+Все запросы требуют Basic Authentication.
+
+## Запуск анализа
+
 ```
-
-## REST API
-
-### Запуск анализа
-
-```http id="qptf19"
 POST /api/analyze
 ```
 
 Пример запроса:
 
-```bash id="jlazcb"
+```bash
 curl -u user:password \
-  -X POST http://localhost:8080/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "directory": "./texts",
-    "minWordLength": 5,
-    "topCount": 10,
-    "mode": "multi",
-    "threads": 4
-  }'
+-X POST http://localhost:8080/api/analyze \
+-H "Content-Type: application/json" \
+-d '{
+    "directory":"./texts",
+    "minWordLength":5,
+    "topCount":10,
+    "mode":"multi",
+    "threads":4
+}'
 ```
 
 Поля запроса:
 
-| Поле            | Тип    | Описание                              |
-| --------------- | ------ | ------------------------------------- |
-| `directory`     | string | путь к директории с `.txt` файлами    |
-| `minWordLength` | number | минимальная длина слова               |
-| `topCount`      | number | количество самых частых слов          |
-| `mode`          | string | режим анализа: `single` или `multi`   |
-| `threads`       | number | количество потоков для `multi` режима |
-| `stopWordsFile` | string | путь к файлу стоп-слов                |
-| `stopWords`     | array  | список стоп-слов в теле запроса       |
+| Поле | Тип | Описание |
+|------|-----|----------|
+| directory | string | путь к директории с `.txt` файлами |
+| minWordLength | number | минимальная длина слова |
+| topCount | number | количество самых частых слов |
+| mode | string | режим анализа: `single` или `multi` |
+| threads | number | количество потоков для многопоточного режима |
+| stopWords | array | список стоп-слов |
+| stopWordsFile | string | путь к файлу стоп-слов |
 
 Пример ответа:
 
-```json id="vjyscn"
+```json
 {
   "id": 1,
   "status": "PENDING"
 }
 ```
 
-### Получение результата анализа
+---
 
-```http id="suwlh4"
+## Получение результата анализа
+
+```
 GET /api/results/{id}
 ```
 
-Пример:
+Пример запроса:
 
-```bash id="izprg7"
-curl -u user:password http://localhost:8080/api/results/1
+```bash
+curl -u user:user http://localhost:8080/api/results/1
 ```
 
-Если анализ ещё выполняется, API возвращает статус:
+Если анализ ещё выполняется:
 
-```json id="n2wryr"
+```json
 {
   "id": 1,
-  "status": "RUNNING",
-  "analysisInfo": null,
-  "words": [],
-  "errors": [],
-  "errorMessage": null
+  "status": "RUNNING"
 }
 ```
 
-Если анализ завершён, API возвращает результат:
+Если анализ завершён:
 
-```json id="oo2lh6"
+```json
 {
   "id": 1,
   "status": "COMPLETED",
-  "analysisInfo": {
-    "directory": "./texts",
-    "minWordLength": 5,
-    "topCount": 10,
-    "mode": "multi",
-    "threads": 4,
-    "processedFiles": 2,
-    "executionTimeMs": 15
-  },
   "words": [
     {
-      "word": "development",
-      "count": 4
+      "word": "spring",
+      "count": 15
     },
     {
-      "word": "process",
-      "count": 3
+      "word": "boot",
+      "count": 11
+    },
+    {
+      "word": "java",
+      "count": 8
     }
-  ],
-  "errors": [],
-  "errorMessage": null
+  ]
 }
 ```
 
-### Получение списка всех анализов
+---
 
-```http id="hbwx0o"
+## Получение списка анализов
+
+```
 GET /api/results
 ```
 
-Пример:
+Пример запроса:
 
-```bash id="0xiv36"
-curl -u user:password http://localhost:8080/api/results
+```bash
+curl -u user:user http://localhost:8080/api/results
 ```
 
-## Проверка авторизации
+---
 
-Без Basic Auth запросы к API не выполняются:
+# Проверка авторизации
 
-```bash id="lkimh0"
+Без авторизации:
+
+```bash
 curl http://localhost:8080/api/results
 ```
 
-Ожидаемый результат:
+Ответ:
 
-```text id="qof5g6"
+```text
 401 Unauthorized
 ```
 
 С авторизацией:
 
-```bash id="g63l73"
-curl -u user:password http://localhost:8080/api/results
+```bash
+curl -u user:user http://localhost:8080/api/results
 ```
 
-## Аудит
+---
 
-Каждый запуск анализа сохраняется в таблицу `audit_logs`.
+# Аудит
+
+Каждый запуск анализа сохраняется в таблицу:
+
+```
+audit_logs
+```
 
 В аудит записываются:
 
-* имя пользователя;
-* действие;
-* время запуска;
-* параметры анализа.
+- пользователь;
+- действие;
+- параметры анализа;
+- дата и время запуска.
 
-## Хранение данных
+Эта информация позволяет отслеживать историю использования сервиса.
 
-Результаты анализов сохраняются в PostgreSQL.
+---
+
+# Хранение данных
+
+Результаты анализа сохраняются в PostgreSQL.
 
 Основные таблицы:
 
-* `analyses`
-* `analysis_words`
-* `analysis_errors`
-* `audit_logs`
+- analyses;
+- analysis_words;
+- analysis_errors;
+- audit_logs.
 
-## Особенности реализации
+Структура базы данных создаётся миграциями Flyway.
 
-* REST-слой отвечает только за HTTP API.
-* Сервисный слой запускает анализ и сохраняет результат.
-* Логика анализа текста из предыдущих этапов переиспользуется.
-* Многопоточная обработка файлов вынесена в отдельный слой `execution`.
-* Ошибки отдельных файлов не останавливают весь анализ.
-* Если анализ ещё не завершён, API возвращает статус выполнения вместо результата.
+Для ускорения поиска и выборок используются индексы, которые также создаются миграциями.
 
-## CLI-режим
+---
 
-CLI-runner отключён по умолчанию:
+# Особенности реализации
 
-```properties id="fkzbbl"
+- REST-слой отвечает только за HTTP API.
+- Сервисный слой содержит бизнес-логику.
+- Операции сохранения выполняются внутри транзакций (`@Transactional`), что обеспечивает согласованность данных.
+- Логика анализа текста полностью переиспользована из предыдущих домашних заданий.
+- Многопоточная обработка вынесена в отдельный слой `execution`.
+- Ошибка обработки одного файла не прерывает анализ остальных файлов.
+- При незавершённом анализе API возвращает текущий статус выполнения.
+- Для управления структурой базы данных используются миграции Flyway.
+
+---
+
+# CLI
+
+CLI-режим отключён по умолчанию:
+
+```properties
 text-analyzer.cli.enabled=false
 ```
 
-Для запуска старого CLI-режима можно включить параметр:
+Для запуска CLI необходимо передать параметр:
 
-```bash id="uz6k7w"
+```bash
 java -jar target/text-analyzer-1.0.0.jar \
-  --text-analyzer.cli.enabled=true \
-  --dir ./texts \
-  --min-length 5 \
-  --top 10 \
-  --mode multi \
-  --threads 4
+--text-analyzer.cli.enabled=true \
+--dir ./texts \
+--min-length 5 \
+--top 10 \
+--mode multi \
+--threads 4
 ```
+
+CLI использует ту же бизнес-логику анализа, что и REST API.
+
+---
+
+# Настройка окружения
+
+Перед первым запуском создайте файл `.env` на основе шаблона:
+
+```bash
+cp .env.example .env
+```
+
+При необходимости измените значения переменных окружения.
+
+Пример структуры `.env`:
+
+```env
+POSTGRES_DB=text_analyzer
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_PORT=5433
+
+APP_PORT=8080
+SERVER_PORT=8080
+
+DB_URL=jdbc:postgresql://postgres:5432/text_analyzer
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+
+TEXT_ANALYZER_SECURITY_USER_USERNAME=user
+TEXT_ANALYZER_SECURITY_USER_PASSWORD=password
+
+TEXT_ANALYZER_SECURITY_ADMIN_USERNAME=admin
+TEXT_ANALYZER_SECURITY_ADMIN_PASSWORD=admin
+```
+---
+
+# Тестирование
+
+Для запуска всех тестов выполните:
+
+```bash
+mvn test
+```
+
+Проект содержит:
+
+- unit-тесты сервисного слоя;
+- тесты REST-контроллеров;
+- тесты репозиториев;
+- тесты безопасности.
+
+Перед запуском интеграционных тестов убедитесь, что PostgreSQL доступен.
+
+---
+

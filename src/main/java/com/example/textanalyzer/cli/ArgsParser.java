@@ -2,13 +2,18 @@ package com.example.textanalyzer.cli;
 
 import com.example.textanalyzer.exception.BadArgumentsException;
 import org.springframework.stereotype.Component;
-
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Parses command-line arguments into validated analysis options.
+ *
+ * <p>The parser accepts parameters in {@code --name value} and {@code --name=value}
+ * formats, rejects unknown or duplicated parameters and converts raw strings to domain types.</p>
+ */
 @Component
 public class ArgsParser {
 
@@ -25,6 +30,13 @@ public class ArgsParser {
             "help"
     );
 
+    /**
+     * Parses and validates raw command-line arguments.
+     *
+     * @param args raw arguments received from the application runner
+     * @return validated command-line options
+     * @throws BadArgumentsException when required arguments are missing or invalid
+     */
     public CommandLineOptions parse(String[] args) {
         Map<String, String> parameters = new LinkedHashMap<>();
 

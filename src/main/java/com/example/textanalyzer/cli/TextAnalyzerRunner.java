@@ -12,12 +12,17 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Runs the analyzer from command-line arguments when CLI mode is enabled.
+ *
+ * <p>This runner is disabled by default for the REST application and is activated only when
+ * {@code text-analyzer.cli.enabled=true}.</p>
+ */
 @Component
 @ConditionalOnProperty(name = "text-analyzer.cli.enabled", havingValue = "true")
 public class TextAnalyzerRunner implements ApplicationRunner {
@@ -31,6 +36,16 @@ public class TextAnalyzerRunner implements ApplicationRunner {
     private final ConsoleResultWriter consoleResultWriter;
     private final ResultWriter jsonResultWriter;
 
+    /**
+     * Creates a CLI runner with all collaborators required for standalone execution.
+     *
+     * @param argsParser command-line argument parser
+     * @param helpPrinter usage printer
+     * @param stopWordsLoader loader for optional stop-word files
+     * @param textAnalysisService main analysis service
+     * @param consoleResultWriter console output writer
+     * @param jsonResultWriter JSON output writer
+     */
     public TextAnalyzerRunner(
             ArgsParser argsParser,
             HelpPrinter helpPrinter,
@@ -47,6 +62,11 @@ public class TextAnalyzerRunner implements ApplicationRunner {
         this.jsonResultWriter = jsonResultWriter;
     }
 
+    /**
+     * Executes the analyzer using Spring Boot source arguments.
+     *
+     * @param args application arguments provided by Spring Boot
+     */
     @Override
     public void run(ApplicationArguments args) {
         try {
