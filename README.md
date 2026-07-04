@@ -1,4 +1,5 @@
 # Text Analyzer
+
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.5-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
@@ -86,29 +87,6 @@ src
 
 ---
 
-
-# Запуск PostgreSQL
-
-Перед первым запуском создайте файл `.env` на основе шаблона:
-
-```bash
-cp .env.example .env
-```
-
-После этого запустите PostgreSQL:
-
-```bash
-docker compose up -d
-```
-
-Проверить, что контейнер успешно запущен, можно командой:
-
-```bash
-docker ps
-```
-
----
-
 # Конфигурация
 
 Основной конфигурационный файл:
@@ -123,20 +101,6 @@ src/main/resources/application.properties
 spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/text_analyzer}
 spring.datasource.username=${DB_USERNAME:text_user}
 spring.datasource.password=${DB_PASSWORD:text_password}
-```
-
-Пример файла `.env`:
-
-```env
-DB_URL=jdbc:postgresql://localhost:5432/text_analyzer
-DB_USERNAME=text_user
-DB_PASSWORD=text_password
-
-TEXT_ANALYZER_SECURITY_USER_USERNAME=user
-TEXT_ANALYZER_SECURITY_USER_PASSWORD=password
-
-TEXT_ANALYZER_SECURITY_ADMIN_USERNAME=admin
-TEXT_ANALYZER_SECURITY_ADMIN_PASSWORD=admin
 ```
 
 Все параметры подключения автоматически считываются Spring Boot при запуске приложения.
@@ -165,20 +129,6 @@ src/main/resources/db/migration
 
 ---
 
-# Полный запуск проекта
-
-- Создать файл .env.
-- cp .env.example .env
-- Запустить PostgreSQL.
-- docker compose up -d
- - Собрать проект.
-mvn clean package
-Запустить приложение.
-java -jar target/text-analyzer-1.0.0.jar
-После запуска открыть:
-http://localhost:8080
-
-
 # Сборка проекта
 
 ```bash
@@ -193,33 +143,56 @@ target/text-analyzer-1.0.0.jar
 
 ---
 
-# Полный запуск проекта
+# Запуск через Docker Compose
 
-1. Создать файл `.env`.
+Перед первым запуском создайте файл `.env` на основе шаблона:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Запустить PostgreSQL.
+После этого выполните:
 
 ```bash
-docker compose up -d
+docker compose up --build
 ```
 
-3. Собрать проект.
+Docker Compose автоматически:
+
+- соберёт приложение;
+- запустит PostgreSQL;
+- применит миграции Flyway;
+- запустит REST-сервис.
+
+После запуска приложение будет доступно по адресу:
+
+```text
+http://localhost:8080
+```
+
+---
+
+# Локальный запуск
+
+Если вы хотите запустить приложение без Docker, сначала запустите только PostgreSQL:
+
+```bash
+docker compose up postgres -d
+```
+
+Затем соберите проект:
 
 ```bash
 mvn clean package
 ```
 
-4. Запустить приложение.
+После этого запустите приложение:
 
 ```bash
 java -jar target/text-analyzer-1.0.0.jar
 ```
 
-5. После запуска открыть:
+После запуска приложение будет доступно по адресу:
 
 ```text
 http://localhost:8080
@@ -235,7 +208,7 @@ API защищено Spring Security Basic Authentication.
 
 | Логин | Пароль |
 |-------|--------|
-| user | user   |
+| user  | user   |
 | admin | admin  |
 
 ---
@@ -246,23 +219,23 @@ API защищено Spring Security Basic Authentication.
 
 ## Запуск анализа
 
-```
+```text
 POST /api/analyze
 ```
 
 Пример запроса:
 
 ```bash
-curl -u user:password \
--X POST http://localhost:8080/api/analyze \
--H "Content-Type: application/json" \
--d '{
+curl -u user:user \
+  -X POST http://localhost:8080/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
     "directory":"./texts",
     "minWordLength":5,
     "topCount":10,
     "mode":"multi",
     "threads":4
-}'
+  }'
 ```
 
 Поля запроса:
@@ -290,7 +263,7 @@ curl -u user:password \
 
 ## Получение результата анализа
 
-```
+```text
 GET /api/results/{id}
 ```
 
@@ -336,7 +309,7 @@ curl -u user:user http://localhost:8080/api/results/1
 
 ## Получение списка анализов
 
-```
+```text
 GET /api/results
 ```
 
@@ -374,7 +347,7 @@ curl -u user:user http://localhost:8080/api/results
 
 Каждый запуск анализа сохраняется в таблицу:
 
-```
+```text
 audit_logs
 ```
 
@@ -431,12 +404,12 @@ text-analyzer.cli.enabled=false
 
 ```bash
 java -jar target/text-analyzer-1.0.0.jar \
---text-analyzer.cli.enabled=true \
---dir ./texts \
---min-length 5 \
---top 10 \
---mode multi \
---threads 4
+  --text-analyzer.cli.enabled=true \
+  --dir ./texts \
+  --min-length 5 \
+  --top 10 \
+  --mode multi \
+  --threads 4
 ```
 
 CLI использует ту же бизнес-логику анализа, что и REST API.
@@ -469,7 +442,7 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 
 TEXT_ANALYZER_SECURITY_USER_USERNAME=user
-TEXT_ANALYZER_SECURITY_USER_PASSWORD=password
+TEXT_ANALYZER_SECURITY_USER_PASSWORD=user
 
 TEXT_ANALYZER_SECURITY_ADMIN_USERNAME=admin
 TEXT_ANALYZER_SECURITY_ADMIN_PASSWORD=admin
@@ -486,12 +459,6 @@ mvn test
 
 Проект содержит:
 
-- unit-тесты сервисного слоя;
-- тесты REST-контроллеров;
-- тесты репозиториев;
-- тесты безопасности.
-
-Перед запуском интеграционных тестов убедитесь, что PostgreSQL доступен.
-
----
-
+- unit-тесты CLI (парсинг аргументов);
+- unit-тесты слоя анализа текстов;
+- unit-тесты сервисного слоя.
