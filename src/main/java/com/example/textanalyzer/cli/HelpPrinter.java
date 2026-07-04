@@ -2,9 +2,15 @@ package com.example.textanalyzer.cli;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Prints command-line usage instructions for the standalone analyzer mode.
+ */
 @Component
 public class HelpPrinter {
 
+    /**
+     * Prints usage instructions to standard output.
+     */
     public void print() {
         System.out.println("""
                 Usage:

@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Analyzes one text file by reading its content, extracting words and applying filters.
+ */
 @Component
 public class SingleFileAnalyzer {
     private static final Logger log = LoggerFactory.getLogger(SingleFileAnalyzer.class);
@@ -21,11 +24,25 @@ public class SingleFileAnalyzer {
     private final TextFileReader textFileReader;
     private final WordExtractor wordExtractor;
 
+    /**
+     * Creates an analyzer for one file.
+     *
+     * @param textFileReader reader used to load file content
+     * @param wordExtractor extractor used to split text into normalized words
+     */
     public SingleFileAnalyzer(TextFileReader textFileReader, WordExtractor wordExtractor) {
         this.textFileReader = textFileReader;
         this.wordExtractor = wordExtractor;
     }
 
+    /**
+     * Reads and analyzes one file.
+     *
+     * @param file file to process
+     * @param minWordLength minimum accepted word length
+     * @param stopWords normalized stop words to exclude
+     * @return word counts or a file error if the file cannot be processed
+     */
     public FileAnalysisResult analyze(Path file, int minWordLength, Set<String> stopWords) {
         Map<String, Long> wordCounts = new HashMap<>();
 

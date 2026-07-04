@@ -15,7 +15,6 @@ import com.example.textanalyzer.model.WordStat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +26,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Default implementation of the text-analysis use case.
+ *
+ * <p>The service validates the source directory, selects the required execution strategy,
+ * merges per-file results and calculates the final top-word list.</p>
+ */
 @Service
 public class DefaultTextAnalysisService implements TextAnalysisService {
 
@@ -36,6 +41,13 @@ public class DefaultTextAnalysisService implements TextAnalysisService {
     private final SingleThreadFileAnalysisExecutor singleThreadExecutor;
     private final PooledFileAnalysisExecutor pooledExecutor;
 
+    /**
+     * Creates the default analysis service.
+     *
+     * @param textFileReader reader used to discover files
+     * @param singleThreadExecutor executor for single-threaded mode
+     * @param pooledExecutor executor for multi-threaded mode
+     */
     public DefaultTextAnalysisService(
             TextFileReader textFileReader,
             SingleThreadFileAnalysisExecutor singleThreadExecutor,
@@ -46,6 +58,13 @@ public class DefaultTextAnalysisService implements TextAnalysisService {
         this.pooledExecutor = pooledExecutor;
     }
 
+    /**
+     * Executes text analysis according to the provided options.
+     *
+     * @param options validated analysis options
+     * @param stopWords normalized stop words to exclude
+     * @return aggregated analysis result
+     */
     @Override
     public AnalysisResult analyze(CommandLineOptions options, Set<String> stopWords) {
         validateDirectory(options.directory());

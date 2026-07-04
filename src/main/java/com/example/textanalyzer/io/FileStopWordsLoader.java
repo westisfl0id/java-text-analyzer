@@ -3,7 +3,6 @@ package com.example.textanalyzer.io;
 import com.example.textanalyzer.exception.BadArgumentsException;
 import com.example.textanalyzer.word.WordExtractor;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,6 +11,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Loads stop words from a local text file.
+ */
 @Component
 public class FileStopWordsLoader implements StopWordsLoader {
 
@@ -21,6 +23,12 @@ public class FileStopWordsLoader implements StopWordsLoader {
         this.wordExtractor = wordExtractor;
     }
 
+    /**
+     * Reads stop words from a file, trims them and converts them to lowercase.
+     *
+     * @param file stop-words file
+     * @return normalized stop words
+     */
     @Override
     public Set<String> load(Path file) {
         validateStopWordsFile(file);

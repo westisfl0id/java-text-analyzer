@@ -5,12 +5,19 @@ import com.example.textanalyzer.model.AnalysisResult;
 import com.example.textanalyzer.model.FileError;
 import com.example.textanalyzer.model.WordStat;
 import org.springframework.stereotype.Component;
-
 import java.util.Locale;
 
+/**
+ * Writes analysis results to the console.
+ */
 @Component
 public class ConsoleResultWriter {
 
+    /**
+     * Prints analysis result to standard output.
+     *
+     * @param result analysis result to print
+     */
     public void write(AnalysisResult result) {
         AnalysisInfo info = result.analysisInfo();
 

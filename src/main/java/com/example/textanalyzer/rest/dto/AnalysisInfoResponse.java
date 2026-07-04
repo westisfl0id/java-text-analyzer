@@ -1,5 +1,8 @@
 package com.example.textanalyzer.rest.dto;
 
+/**
+ * Response containing general information about an analysis.
+ */
 public record AnalysisInfoResponse(
         String directory,
         int minWordLength,
